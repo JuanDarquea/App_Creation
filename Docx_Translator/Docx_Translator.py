@@ -36,17 +36,35 @@ def file_validation(file_path):
     elif not os.path.exists(file_path):
         print(f"\nError!! The file {file_path} selected does not exist.")
         return False
-    elif not file_path.endswith(".docx"):
+    elif not file_path.lower().endswith(".docx"):
         print("\nError!! The file selected must be a '.docx' file.")
         return False
     else:
         # When file is selected
         print(f"\nFile selected to translate: {file_path}", 
-                f"\nPath directory: {os.path.dirname(file_path)}", 
+                f"\nFile path: {os.path.dirname(file_path)}", 
                 f"\nFile name: {os.path.basename(file_path)}", 
-                f"\nFile size: {os.path.getsize(file_path)} KB\n")
+                f"\nFile size: {os.path.getsize(file_path)} KB", sep="")
         return True
+def read_document(file_path):
+    """Read the .docx file and return it as an object"""    
+    selected_document = Document(file_path)
+    doc = []
+    for paragraph in selected_document.paragraphs:
+        doc.append(paragraph.text)
+    print("\nDocument content read successfully.")
     
+    total = len(selected_document.paragraphs)
+    print(f"Paragraph count: {total}\n")
+#    print("Document content:")
+    print("First paragraph: \n", 
+          doc[0])  # print first paragraph of document
+    print()
+#    n = 0
+#    for paragraph in doc:
+#        n = n + 1
+#        print(f"P{n}: {paragraph}\n")
+
 def main():
     """Main function to test file selection"""
     print("Select a .docx file to translate...")
@@ -62,6 +80,8 @@ def main():
     # Validate file
     if file_validation(chosen_file) is None:
         return
+    # Read document
+    read_document(chosen_file)
 
 if __name__=="__main__":
     main()
