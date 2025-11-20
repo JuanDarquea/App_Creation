@@ -20,7 +20,7 @@ def select_docx_file():
             ("Word Documents", "*.docx"), # shows only .docx files
             ("All FIles", "*.*") # show every type of file
         ],
-        initialdir=os.path.expanduser("~") # sets the initial directory to user's home folder
+        initialdir=os.path.expanduser("C:\\Users\\USUARIO\\OneDrive\\Documentos\\My_Projects\\Projects\\AppTools\\Docx_Translator") # sets the initial directory to user's home folder
     )
     
     # destroy the root dialog window
@@ -32,13 +32,20 @@ def select_docx_file():
 def file_validation(file_path):
     """Validate if a file path was selected""" 
     if file_path is None:
-        print("\nUser closed window before selecting a file.")
-        return None
+        return False
+    elif not os.path.exists(file_path):
+        print(f"\nError!! The file {file_path} selected does not exist.")
+        return False
     elif not file_path.endswith(".docx"):
-        print("\nThe file selected must be a '.docx' file.")
-        return None
+        print("\nError!! The file selected must be a '.docx' file.")
+        return False
     else:
-        return file_path
+        # When file is selected
+        print(f"\nFile selected to translate: {file_path}", 
+                f"\nPath directory: {os.path.dirname(file_path)}", 
+                f"\nFile name: {os.path.basename(file_path)}", 
+                f"\nFile size: {os.path.getsize(file_path)} KB\n")
+        return True
     
 def main():
     """Main function to test file selection"""
@@ -47,11 +54,14 @@ def main():
     # get file selected from user
     chosen_file = select_docx_file()
 
-    if file_validation(chosen_file) is None:
-        return # exit the program if no valid file is selected
-    else:
-        print(f"\nFile selected to translate: {chosen_file}")
+    # Close if cancelled and no file selected
+    if not chosen_file:
+        print("\nUser closed window before selecting a file. Goodbye!")
+        return
 
+    # Validate file
+    if file_validation(chosen_file) is None:
+        return
 
 if __name__=="__main__":
     main()
