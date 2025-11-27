@@ -1,0 +1,14 @@
+./Test_Docs/TestDocument.docx
+*.env
+__pycache__/
+*.pyc
+venv/
+.vscode/
+Project_env.env
+*.docx
+TestDocument.docx
+TestDocument - copia.zip
+Test_Docs/
+Translated_Docs/
+*.zip
+*.txt
