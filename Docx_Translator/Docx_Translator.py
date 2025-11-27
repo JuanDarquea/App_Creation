@@ -1,6 +1,7 @@
 # Docx_Translator
 import os
 
+from googletrans import Translator # to translate text
 from pathlib import Path
 from operator import index
 from tkinter import Tk
@@ -9,21 +10,10 @@ from dotenv import load_dotenv # to load environment variables from .env file
 import deepl # to translate text
 from docx import Document   # to read and write .docx files
 
-# get DeepL API key from environment variable
-load_dotenv()
-deepL_api_key = os.getenv("deepL_auth_key") # get DeepL API key from environment variable
-trans_files_dir = os.getenv("translated_docs_dir") # get translated files directory from environment variable
+load_dotenv() # load environment variables from .env file
 
-# get DeepL API key from environment variable with correct case
-# deepL_api_key = os.environ["DEEPL_AUTH_KEY"]
-
-if deepL_api_key is None:
-    raise RuntimeError("DeepL API key not found in environment variables.")
-
-# alternatively, set the API key from the environment variable directly
-# translator = deepl.Translator(os.getenv("DEEPL_AUTH_KEY"))
-
-translator = deepl.Translator(deepL_api_key) # create DeepL translator object
+# create google transalator obeject
+translator = Translator()
 
 # define a variable to select the file to be translated
 def select_docx_file():
@@ -93,11 +83,6 @@ def read_document(file_path):
     total = len(selected_document.paragraphs)
     print(f"Paragraph count: {total}\n")
 
-    # print first paragraph as test
-#    print("First paragraph: \n", 
-#          doc[0])  # print first paragraph of document
-#    print()
-
     # print all paragraphs with a paragraph index as test
     for index, paragraph in enumerate(doc):
         if paragraph.strip() != "": # skip empty paragraphs
@@ -113,6 +98,27 @@ def read_document(file_path):
                   f"{len(selected_document.paragraphs[index].text)} characters", 
                   sep = " - ")
 #            index - 1 # do not count empty paragraphs
+    return selected_document if selected_document else None
+
+def translate_text_googletrans(file_path, target_lang="ES"):
+    """Translate text using googletrans module"""
+    file_text = read_document(file_path)
+    if file_text is None:
+        print("The file selected does not exist or could not be read.")
+        return
+
+    translated_file = []
+    print()
+    for paragraph in file_text.paragraphs:
+        if paragraph.text.strip() != "": # skip empty paragraphs
+            translated = translator.translate(paragraph.text, 
+                                              dest=target_lang)
+            print(paragraph.text, " --> ", translated.text, sep="")
+            translated_file.append(translated.text)
+    print("\nThe file output is the following list:", 
+          f"\n{translated_file}")
+    print()
+    return translated_file if translated_file else None
 
 def main():
     """Main function to test file selection"""
@@ -134,37 +140,12 @@ def main():
     read_document(chosen_file)
 
     # Translate sample text
-    translated_text = translator.translate_text(text="Hello world", 
-                                                target_lang="ES")
+    translated_text = translator.translate("Hello world", 
+                                           dest='es').text
     print(f"\nTranslated text: {translated_text}")
 
     # Translate document and save to translated files directory
-    print("trans_files_dir =", trans_files_dir, "type:", type(trans_files_dir))
-    if trans_files_dir is None:
-        raise RuntimeError("Translated files directory not found in environment variables.")
-    output_path = Path(trans_files_dir) / "Translated_File.docx"
-    print(f"\nTranslated files directory: {trans_files_dir}")
-    translated_file = translator.translate_document_from_filepath(chosen_file, 
-                                                                  output_path=output_path, 
-                                                                  target_lang="ES")
-    print(f"Translated file: {translated_file}")
+    translate_text_googletrans(chosen_file, target_lang="ES")
 
 if __name__=="__main__":
     main()
-    
-
-# assign the file document path to a variable and store the document to "doc" using module document
-#file_path = "C:\\Users\\USUARIO\\OneDrive\\Documentos\\My_Projects\\Projects\\AppTools\\Docx_Translator\\TestDocument.docx"
-#doc = Document(file_path)
-
-#extract all paragraphs from the document
-#for paragraph in doc.paragraphs:
-#    print(paragraph.text)
-
-# get complete text paragraph
-#full_text = paragraph.text
-
-# translate text
-#translated_text = translate(full_text)
-
-# distribute translated text back into runs keeping the formatting
