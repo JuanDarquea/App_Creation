@@ -1,13 +1,29 @@
 # Docx_Translator
 import os
+
+from pathlib import Path
+from operator import index
 from tkinter import Tk
 from tkinter import filedialog as fd
 from dotenv import load_dotenv # to load environment variables from .env file
+import deepl # to translate text
+from docx import Document   # to read and write .docx files
 
-from docx import Document
-
-# load environment variable from .env file
+# get DeepL API key from environment variable
 load_dotenv()
+deepL_api_key = os.getenv("deepL_auth_key") # get DeepL API key from environment variable
+trans_files_dir = os.getenv("translated_docs_dir") # get translated files directory from environment variable
+
+# get DeepL API key from environment variable with correct case
+# deepL_api_key = os.environ["DEEPL_AUTH_KEY"]
+
+if deepL_api_key is None:
+    raise RuntimeError("DeepL API key not found in environment variables.")
+
+# alternatively, set the API key from the environment variable directly
+# translator = deepl.Translator(os.getenv("DEEPL_AUTH_KEY"))
+
+translator = deepl.Translator(deepL_api_key) # create DeepL translator object
 
 # define a variable to select the file to be translated
 def select_docx_file():
@@ -116,6 +132,22 @@ def main():
         return
     # Read document
     read_document(chosen_file)
+
+    # Translate sample text
+    translated_text = translator.translate_text(text="Hello world", 
+                                                target_lang="ES")
+    print(f"\nTranslated text: {translated_text}")
+
+    # Translate document and save to translated files directory
+    print("trans_files_dir =", trans_files_dir, "type:", type(trans_files_dir))
+    if trans_files_dir is None:
+        raise RuntimeError("Translated files directory not found in environment variables.")
+    output_path = Path(trans_files_dir) / "Translated_File.docx"
+    print(f"\nTranslated files directory: {trans_files_dir}")
+    translated_file = translator.translate_document_from_filepath(chosen_file, 
+                                                                  output_path=output_path, 
+                                                                  target_lang="ES")
+    print(f"Translated file: {translated_file}")
 
 if __name__=="__main__":
     main()
