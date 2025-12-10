@@ -136,6 +136,7 @@ def main():
     # Validate file
     if file_validation(chosen_file) is None:
         return
+    
     # Read document
     read_document(chosen_file)
 
