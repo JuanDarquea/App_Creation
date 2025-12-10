@@ -138,12 +138,12 @@ def main():
         return
     
     # Read document
-    read_document(chosen_file)
+    #selected_document = read_document(chosen_file)
 
     # Translate sample text
-    translated_text = translator.translate("Hello world", 
-                                           dest='es').text
-    print(f"\nTranslated text: {translated_text}")
+    #translated_text = translator.translate("Hello world", 
+    #                                       dest='es').text
+    #print(f"\nTranslated text: {translated_text}")
 
     # Translate document and save to translated files directory
     translate_text_googletrans(chosen_file, target_lang="ES")
