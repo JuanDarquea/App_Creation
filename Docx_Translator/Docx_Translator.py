@@ -11,7 +11,10 @@ from zipfile import BadZipFile # to handle invalid .docx files
 import deepl # to translate text
 from docx import Document   # to read and write .docx files
 
-load_dotenv() # load environment variables from .env file
+
+# Load the .env file from the same directory as this script
+env_path = Path(__file__).parent / "Project_env.env"
+load_dotenv(env_path) # load environment variables from .env file
 
 # create google transalator obeject
 translator = Translator()
@@ -69,7 +72,6 @@ def file_validation(file_path):
             print(f"\nError validating the file: {e}")
         return
         
-
 def read_document(file_path):
     """Read the .docx file and return it as an object"""    
     selected_document = Document(file_path)
@@ -95,16 +97,14 @@ def read_document(file_path):
     for index, paragraph in enumerate(doc):
         if paragraph.strip() != "": # skip empty paragraphs
             print(index + 1, 
-                  paragraph, selected_document.paragraphs[index].style.name, 
-                  f"{len(selected_document.paragraphs[index].text)} characters", 
+                  paragraph, f"Selected style: {selected_document.paragraphs[index].style.name}", 
+                  f"Alignment: {selected_document.paragraphs[index].alignment}", 
+                  f"Font: {selected_document.paragraphs[index].runs[0].font.name if selected_document.paragraphs[index].runs else "Default Font"}",
+                  f"{len(selected_document.paragraphs[index].text)} characters",
                   sep = " - ")
 #            print(f"P{index + 1}: {paragraph}") # alternative print format
         else:
-            print(index +1, 
-                  "<Empty paragraph>", 
-                  selected_document.paragraphs[index].style.name, 
-                  f"{len(selected_document.paragraphs[index].text)} characters", 
-                  sep = " - ")
+            print(index + 1,"<Empty paragraph>", sep=" - ")
 #            index - 1 # do not count empty paragraphs
     return selected_document if selected_document else None
 
@@ -127,6 +127,43 @@ def translate_text_googletrans(file_path, target_lang="ES"):
           f"\n{translated_file}")
     print()
     return translated_file if translated_file else None
+
+def transalted_doc_creation(file_path, translated_file):
+    """Function to create an output file and 
+    write translated text into the new file"""
+    print("Creating output file...")
+    
+    # Create output file
+    trans_file = Document()
+
+    # Select original file path
+    try:
+        base_name = os.path.basename(file_path)
+        name_no_ext, ext = os.path.splitext(base_name)
+        print()
+        print(f"Chosen base name --> {base_name}")
+    except Exception as e: 
+        print(f"Error reading the file: {e}")
+        return
+        
+
+    # Create new file name
+    new_name = name_no_ext + "_ES" + ext
+
+    # Assign output file path
+    try:
+        output_dir = os.getenv("translated_docs_dir") or os.getenv("app_tools_dir") or os.getenv("trans_docs_dir") #or os.path.dirname(file_path)
+        if not output_dir:
+            print("Error!! No output directory defined in environment variables.")
+            return
+        output_path = os.path.join(output_dir, 
+                                   new_name)
+        print(f"Chosen file dir --> {output_dir}")
+    except Exception as e:
+        print(f"Error getting the output directory path: {e}")
+        return
+
+
 
 def main():
     """Main function to test file selection"""
@@ -154,7 +191,11 @@ def main():
     #print(f"\nTranslated text: {translated_text}")
 
     # Translate document and save to translated files directory
-    translate_text_googletrans(chosen_file, target_lang="ES")
+    translated_file = translate_text_googletrans(chosen_file, target_lang="ES")
+
+    # Call function to create a new document with the translated text
+    transalted_doc_creation(chosen_file, translated_file)
+
 
 if __name__=="__main__":
     main()
