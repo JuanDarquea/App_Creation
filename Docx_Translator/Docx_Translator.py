@@ -118,11 +118,15 @@ def translate_text_googletrans(file_path, target_lang="ES"):
     translated_file = []
     print()
     for paragraph in file_text.paragraphs:
-        if paragraph.text.strip() != "": # skip empty paragraphs
+        if paragraph.text.strip() == "": # skip empty paragraphs
+            translated_file.append("") # keep empty paragraphs
+            print("<Empty paragraph> --> <Empty paragraph>")
+        else:
             translated = translator.translate(paragraph.text, 
                                               dest=target_lang)
             print(paragraph.text, " --> ", translated.text, sep="")
             translated_file.append(translated.text)
+    print()
     print("\nThe file output is the following list:", 
           f"\n{translated_file}")
     print()
@@ -152,18 +156,36 @@ def transalted_doc_creation(file_path, translated_file):
 
     # Assign output file path
     try:
-        output_dir = os.getenv("translated_docs_dir") or os.getenv("app_tools_dir") or os.getenv("trans_docs_dir") #or os.path.dirname(file_path)
+        output_dir = os.getenv("translated_docs_dir") or os.getenv("app_tools_dir") or os.path.dirname(file_path)
         if not output_dir:
             print("Error!! No output directory defined in environment variables.")
             return
         output_path = os.path.join(output_dir, 
                                    new_name)
         print(f"Chosen file dir --> {output_dir}")
+        print(f"New file name --> {new_name}")
+        print(f"New file path --> {output_path}\n")
     except Exception as e:
         print(f"Error getting the output directory path: {e}")
         return
+    
+    # Write translated text into the new document
+    with open(output_path, "w+", encoding="utf-8") as out_file:
+        try:
+            for paragraph in translated_file:
+                trans_file.add_paragraph(paragraph)
 
+                # Handle empty lines
+                if not paragraph.strip():
+                    trans_file.add_paragraph("")
+                    continue
 
+            trans_file.save(output_path)
+            print(f"Translated document saved successfully at: {output_path}")
+            return output_path
+        except Exception as e:
+            print(f"Error reading translated document: {e}")
+            return
 
 def main():
     """Main function to test file selection"""
