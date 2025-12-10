@@ -7,6 +7,7 @@ from operator import index
 from tkinter import Tk
 from tkinter import filedialog as fd
 from dotenv import load_dotenv # to load environment variables from .env file
+from zipfile import BadZipFile # to handle invalid .docx files
 import deepl # to translate text
 from docx import Document   # to read and write .docx files
 
@@ -58,9 +59,16 @@ def file_validation(file_path):
         except FileExistsError: # file does not exist
             print(f"\nError!! The file {file_path} selected does not exist.")
             return 
+        except BadZipFile as e: # file is not a valid .docx file
+            print(f"\nError!! The file selected is not a valid .docx file: {e}")
+            return
+        except PermissionError as e: # file access permission error
+            print(f"\nError!! Permission denied to access the file: {e}")
+            return
         except Exception as e: # other errors
             print(f"\nError validating the file: {e}")
         return
+        
 
 def read_document(file_path):
     """Read the .docx file and return it as an object"""    
