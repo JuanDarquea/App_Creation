@@ -10,11 +10,17 @@ from dotenv import load_dotenv # to load environment variables from .env file
 from zipfile import BadZipFile # to handle invalid .docx files
 import deepl # to translate text
 from docx import Document   # to read and write .docx files
+import time
 
 
 # Load the .env file from the same directory as this script
 env_path = Path(__file__).parent / "Project_env.env"
 load_dotenv(env_path) # load environment variables from .env file
+
+# Define rate limit parameters
+rate_limit_minute = 450  # translator plan rate limit: 450 requests per minute
+delay_between_requests = 60/rate_limit_minute  # calculate delay between requests in seconds
+max_retries = 5 # maximum number of retries for failed requests
 
 # create google transalator obeject
 translator = Translator()
@@ -122,10 +128,15 @@ def translate_text_googletrans(file_path, target_lang="ES"):
             translated_file.append("") # keep empty paragraphs
             print("<Empty paragraph> --> <Empty paragraph>")
         else:
-            translated = translator.translate(paragraph.text, 
-                                              dest=target_lang)
-            print(paragraph.text, " --> ", translated.text, sep="")
-            translated_file.append(translated.text)
+            try:
+                translated = translator.translate(paragraph.text, 
+                                                dest=target_lang)
+                print(paragraph.text, " --> ", translated.text, sep="")
+                translated_file.append(translated.text)
+                time.sleep(delay_between_requests)  # to avoid hitting rate limits
+            except Exception as e:
+                print(f"Error! Could not translate the paragraph: {e}", f"\nOriginal paragraph: {paragraph.text}")
+                return
     print()
     print("\nThe file output is the following list:", 
           f"\n{translated_file}")
