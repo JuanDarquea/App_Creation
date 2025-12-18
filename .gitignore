@@ -2,6 +2,7 @@
 Test_Docs/
 TestDocument.docx
 TestDocument - copia.zip
+Test.ipynb
 
 # Environment variables
 *.env
