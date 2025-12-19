@@ -13,7 +13,11 @@ from docx import Document   # to read and write .docx files
 import time
 
 # Load the .env file from the same directory as this script
-env_path = Path(__file__).parent / "Project_env.env"
+try:
+    env_path = Path(__file__).parent / "Project_env.env"
+except NameError:
+    env_path = Path.cwd() / "Project_env.env"
+
 load_dotenv(env_path) # load environment variables from .env file
 
 # Define rate limit parameters
