@@ -1,5 +1,6 @@
 anyio==4.12.0
 asttokens==3.0.1
+asyncio==4.0.0
 certifi==2025.11.12
 charset-normalizer==3.4.4
 comm==0.2.3

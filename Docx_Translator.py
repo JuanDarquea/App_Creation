@@ -2,6 +2,7 @@
 import os
 
 from googletrans import Translator # to translate text
+import asyncio
 from pathlib import Path
 from operator import index
 from tkinter import Tk
@@ -117,7 +118,7 @@ def read_document(file_path):
 #            index - 1 # do not count empty paragraphs
     return selected_document if selected_document else None
 
-def translate_text_googletrans(file_path, target_lang="ES"):
+async def translate_text_googletrans(file_path, target_lang="ES"):
     """Translate text using googletrans module"""
     file_text = read_document(file_path)
     if file_text is None:
@@ -125,21 +126,25 @@ def translate_text_googletrans(file_path, target_lang="ES"):
         return
 
     translated_file = []
-    print()
-    for paragraph in file_text.paragraphs:
-        if paragraph.text.strip() == "": # skip empty paragraphs
-            translated_file.append("") # keep empty paragraphs
-            print("<Empty paragraph> --> <Empty paragraph>")
-        else:
-            try:
-                translated = translator.translate(paragraph.text, 
-                                                dest=target_lang)
-                print(paragraph.text, " --> ", translated.text, sep="")
-                translated_file.append(translated.text)
-                time.sleep(delay_between_requests)  # to avoid hitting rate limits
-            except Exception as e:
-                print(f"Error! Could not translate the paragraph: {e}", f"\nOriginal paragraph: {paragraph.text}")
-                return
+    async with Translator() as translator:
+        print()
+        for paragraph in file_text.paragraphs:
+            if paragraph.text.strip() == "": # skip empty paragraphs
+                translated_file.append("") # keep empty paragraphs
+                print("<Empty paragraph> --> <Empty paragraph>")
+            else:
+                try:
+                    result = await translator.translate(
+                        paragraph.text, 
+                        dest=target_lang
+                        )
+                    print(paragraph.text, " --> ", result.text, sep="")
+                    translated_file.append(result.text)
+                    time.sleep(delay_between_requests)  # to avoid hitting rate limits
+                except Exception as e:
+                    print(f"Error! Could not translate the paragraph: {e}", f"\nOriginal paragraph: {paragraph.text}")
+                    return
+                
     print()
     print("\nThe file output is the following list:", 
           f"\n{translated_file}")
@@ -170,7 +175,7 @@ def transalted_doc_creation(file_path, translated_file):
 
     # Assign output file path
     try:
-        output_dir = os.getenv("translated_docs_dir") or os.getenv("app_tools_dir") or os.path.dirname(file_path)
+        output_dir = os.getenv("lin_translated_docs_dir") or os.getenv("lin_GitHub_dir") or os.path.dirname(file_path)
         if not output_dir:
             print("Error!! No output directory defined in environment variables.")
             return
@@ -227,7 +232,9 @@ def main():
     #print(f"\nTranslated text: {translated_text}")
 
     # Translate document and save to translated files directory
-    translated_file = translate_text_googletrans(chosen_file, target_lang="ES")
+    translated_file = asyncio.run(
+        translate_text_googletrans(chosen_file, target_lang="ES")
+    )
 
     # Call function to create a new document with the translated text
     transalted_doc_creation(chosen_file, translated_file)
